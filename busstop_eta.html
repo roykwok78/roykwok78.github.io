@@ -5,12 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>九巴站點與 ETA 查詢</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        input { width: 300px; padding: 8px; margin-bottom: 10px; }
-        ul { list-style-type: none; padding: 0; }
-        li { padding: 10px; border-bottom: 1px solid #ddd; cursor: pointer; }
-        li:hover { background-color: #f0f0f0; }
-        #etaResults { margin-top: 20px; }
+        /* 全局樣式 */
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+            background-color: #f9f9f9;
+        }
+        h2, h3 {
+            text-align: center;
+        }
+
+        /* 輸入框樣式 */
+        input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: block;
+            margin: 10px auto;
+        }
+
+        /* 列表樣式 */
+        ul {
+            list-style-type: none;
+            padding: 0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        li {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-align: center;
+        }
+
+        li:hover {
+            background-color: #e0e0e0;
+        }
+
+        /* 行動裝置適配 */
+        @media screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            h2, h3 {
+                font-size: 18px;
+            }
+            input {
+                font-size: 14px;
+                padding: 10px;
+                max-width: 100%;
+            }
+            li {
+                font-size: 14px;
+                padding: 12px;
+            }
+        }
     </style>
 </head>
 <body>
