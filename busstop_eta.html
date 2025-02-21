@@ -12,21 +12,23 @@
             margin: 0;
             background-color: #f9f9f9;
         }
+
         h2, h3 {
             text-align: center;
         }
 
         /* 輸入框樣式 */
         input {
-            width: 100%;
-            max-width: 400px;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            display: block;
-            margin: 10px auto;
-        }
+    width: calc(100% - 30px); /* 避免過寬，減少一些空間 */
+    max-width: 400px; /* 限制輸入欄的最大寬度 */
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: block;
+    margin: 10px auto;
+    box-sizing: border-box; /* 確保 padding 不影響總寬度 */
+}
 
         /* 列表樣式 */
         ul {
@@ -34,6 +36,11 @@
             padding: 0;
             max-width: 600px;
             margin: 0 auto;
+            overflow-y: auto; /* 滾動條 */
+            max-height: 300px; /* 限制高度 */
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
         }
 
         li {
@@ -49,28 +56,64 @@
             background-color: #e0e0e0;
         }
 
+        /* 載入提示 */
+        .loading {
+            text-align: center;
+            background: #ffeaa7;
+            color: #2d3436;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px auto;
+            max-width: 400px;
+        }
+
         /* 行動裝置適配 */
         @media screen and (max-width: 600px) {
             body {
                 padding: 10px;
             }
+
             h2, h3 {
                 font-size: 18px;
             }
+
             input {
                 font-size: 14px;
                 padding: 10px;
                 max-width: 100%;
             }
+
+            ul {
+                max-height: 200px; /* 減小滾動區域高度 */
+            }
+
             li {
                 font-size: 14px;
                 padding: 12px;
+            }
+        }
+
+        /* 超小屏幕適配 */
+        @media screen and (max-width: 400px) {
+            h2, h3 {
+                font-size: 16px;
+            }
+
+            input {
+                font-size: 12px;
+                padding: 8px;
+            }
+
+            li {
+                font-size: 12px;
+                padding: 10px;
             }
         }
     </style>
 </head>
 <body>
     <h2>🔍 九巴站點與 ETA 查詢</h2>
+    <div id="loading" class="loading" style="display:none;">📡 正在加載站點數據，請稍候...</div>
     <input type="text" id="searchInput" placeholder="輸入站點名稱（繁體）" oninput="searchStops()">
     <ul id="resultList"></ul>
     
@@ -78,10 +121,17 @@
     <ul id="etaResults"></ul>
 
     <script>
-        let stopsData = []; // 只聲明一次
+        let stopsData = []; // 站點資料
+
+        // 顯示或隱藏載入提示
+        function toggleLoading(show) {
+            const loadingElement = document.getElementById("loading");
+            loadingElement.style.display = show ? "block" : "none";
+        }
 
         // 取得九巴站點資料
         async function fetchStops() {
+            toggleLoading(true);
             try {
                 let response = await fetch("https://data.etabus.gov.hk/v1/transport/kmb/stop");
                 let data = await response.json();
@@ -89,6 +139,9 @@
                 console.log("🚏 站點數據加載完成", stopsData);
             } catch (error) {
                 console.error("❌ 無法載入站點資料:", error);
+                alert("❌ 站點資料加載失敗，請檢查網絡連接。");
+            } finally {
+                toggleLoading(false);
             }
         }
 
