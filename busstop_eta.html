@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>九巴站點與 ETA 查詢</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        input { width: 300px; padding: 8px; margin-bottom: 10px; }
+        ul { list-style-type: none; padding: 0; }
+        li { padding: 10px; border-bottom: 1px solid #ddd; cursor: pointer; }
+        li:hover { background-color: #f0f0f0; }
+        #etaResults { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>🔍 九巴站點與 ETA 查詢</h2>
+    <input type="text" id="searchInput" placeholder="輸入站點名稱（繁體）" oninput="searchStops()">
+    <ul id="resultList"></ul>
+    
+    <h3>🚏 站點巴士 ETA</h3>
+    <ul id="etaResults"></ul>
+
+    <script>
+        let stopsData = []; // 只聲明一次
+
+        // 取得九巴站點資料
+        async function fetchStops() {
+            try {
+                let response = await fetch("https://data.etabus.gov.hk/v1/transport/kmb/stop");
+                let data = await response.json();
+                stopsData = data.data; // 更新站點資料
+                console.log("🚏 站點數據加載完成", stopsData);
+            } catch (error) {
+                console.error("❌ 無法載入站點資料:", error);
+            }
+        }
+
+        // 搜尋站點
+        function searchStops() {
+            let keyword = document.getElementById("searchInput").value.trim();
+            let resultList = document.getElementById("resultList");
+            resultList.innerHTML = ""; // 清空舊結果
+
+            if (stopsData.length === 0) {
+                console.warn("⚠️ 站點數據未加載，請稍等");
+                return;
+            }
+
+            if (keyword === "") return; // 若輸入空白，不搜尋
+
+            let filteredStops = stopsData.filter(stop => stop.name_tc.includes(keyword));
+            console.log("🔎 搜尋結果:", filteredStops);
+
+            if (filteredStops.length === 0) {
+                resultList.innerHTML = "<li>❌ 找不到相關站點</li>";
+                return;
+            }
+
+            filteredStops.forEach(stop => {
+                let listItem = document.createElement("li");
+                listItem.textContent = `${stop.name_tc}（ID: ${stop.stop}）`;
+                listItem.onclick = () => fetchETA(stop.stop, stop.name_tc); // 點擊顯示 ETA
+                resultList.appendChild(listItem);
+            });
+        }
+
+        // 取得站點 ETA
+        async function fetchETA(stopId, stopName) {
+            let etaResults = document.getElementById("etaResults");
+            etaResults.innerHTML = `<li>📡 正在獲取 ${stopName}（ID: ${stopId}）的 ETA 資料...</li>`;
+
+            try {
+                let response = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/${stopId}`);
+                let data = await response.json();
+                let etaData = data.data;
+
+                etaResults.innerHTML = ""; // 清空舊結果
+
+                if (etaData.length === 0) {
+                    etaResults.innerHTML = "<li>❌ 沒有可用的 ETA 資料</li>";
+                    return;
+                }
+
+                etaData.forEach(bus => {
+                    let arrivalTime = bus.eta ? new Date(bus.eta).toLocaleTimeString("zh-HK", { hour: "2-digit", minute: "2-digit" }) : "未有預計時間";
+                    let listItem = document.createElement("li");
+                    listItem.textContent = `🚌 路線 ${bus.route} - 預計到達時間：${arrivalTime}`;
+                    etaResults.appendChild(listItem);
+                });
+
+            } catch (error) {
+                console.error("❌ 無法載入 ETA 資料:", error);
+                etaResults.innerHTML = "<li>❌ 無法獲取 ETA 資料，請稍後再試。</li>";
+            }
+        }
+
+        // 頁面載入時先取得站點資料
+        fetchStops();
+    </script>
+</body>
+</html>
